@@ -39,13 +39,14 @@
 	l20 = !git l -n 20
 	l25 = !git l -n 25
 	ll = !git l -n 10
+	lb = !git l origin/master..
 	wip = commit -m 'WIP'
 	p = pull
 	ps = push
 	psfl = push --force-with-lease
 	fmar = !git fetch && git rebase origin/master
 	r = rebase
-	rim = rebase -i master
+	rim = rebase -i origin/master
 	sl = "!f () { count=${1:-3}; git s | awk '{print $2}'  | xargs -n 1 -t git l -n $count --; }; f $1"
 	showv = !git showtool
 	dv = difftool --no-prompt

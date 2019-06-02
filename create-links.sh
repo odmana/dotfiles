@@ -29,3 +29,9 @@ rm "$tmux"
 ln -s ~/dotfiles/tmux/tmux.conf "$tmux"
 ls -al "$tmux"
 
+echo ""
+echo "Setting up alacritty links"
+alacritty=~/.config/alacritty/alacritty.yml
+rm "$alacritty"
+ln -s ~/dotfiles/alacritty/alacritty.yml "$alacritty"
+ls -al "$alacritty"

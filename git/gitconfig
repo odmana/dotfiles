@@ -3,7 +3,7 @@
 	name = Ovindu Manawaduge
 	email = odmanawaduge@gmail.com
 [core]
-	excludesfile = /Users/ovindu.manawaduge/.gitignore
+	excludesfile = ~/.gitignore
 	pager = diff-so-fancy | less --tabs=4 -RFX
 [alias]
 	a = add

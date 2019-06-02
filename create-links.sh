@@ -21,3 +21,11 @@ zsh=~/.zshrc
 rm "$zsh"
 ln -s ~/dotfiles/zsh/zshrc "$zsh"
 ls -al "$zsh"
+
+echo ""
+echo "Setting up tmux links"
+tmux=~/.tmux.conf
+rm "$tmux"
+ln -s ~/dotfiles/tmux/tmux.conf "$tmux"
+ls -al "$tmux"
+

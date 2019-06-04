@@ -35,3 +35,10 @@ alacritty=~/.config/alacritty/alacritty.yml
 rm "$alacritty"
 ln -s ~/dotfiles/alacritty/alacritty.yml "$alacritty"
 ls -al "$alacritty"
+
+echo ""
+echo "Setting up vim links"
+vim=~/.vimrc
+rm -f "$vim"
+ln -s ~/dotfiles/vim/vimrc "$vim"
+ls -al "$vim"

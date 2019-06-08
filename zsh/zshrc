@@ -115,8 +115,6 @@ if [[ $(print -P "%#") =~ "#" ]]; then
 fi
 POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%{%B%F{black}%K{yellow}%} $user_symbol%{%b%f%k%F{yellow}%} %{%f%}"
 
-source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
 
 ##############################################################
 # Custom Aliases
@@ -125,7 +123,12 @@ alias nx="nix-shell --command zsh"
 alias cls="clear"
 
 
-. /Users/ovindu.manawaduge/.nix-profile/etc/profile.d/nix.sh
+##############################################################
+# Custom Scripts
+##############################################################
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+[ -s "/Users/ovindu.manawaduge/.nix-profile/etc/profile.d/nix.sh" ] && . /Users/ovindu.manawaduge/.nix-profile/etc/profile.d/nix.sh
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm

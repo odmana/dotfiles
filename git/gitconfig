@@ -69,3 +69,8 @@
 	whitespace = red reverse
 [rebase]
 	autosquash = true
+[push]
+	followTags = true
+[fetch]
+	prune = true
+	pruneTags = true

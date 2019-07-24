@@ -6,6 +6,8 @@ brew cask install alacritty
 
 brew install bat
 
+brew install fzf
+
 brew install tmux
 curl -L https://git.io/tmux-up -o /usr/local/bin/tmux-up
 

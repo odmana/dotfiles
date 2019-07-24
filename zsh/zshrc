@@ -118,16 +118,12 @@ POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%{%B%F{black}%K{yellow}%} $user_symbo
 
 
 ##############################################################
-# Custom Aliases
-##############################################################
-alias nx="nix-shell --command zsh"
-alias cls="clear"
-
-
-##############################################################
 # Custom Scripts
 ##############################################################
 source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+export DOTFILES_DIR="$HOME/dotfiles"
+[ -s "$DOTFILES_DIR/config/aliases.sh" ] && . "$DOTFILES_DIR/config/aliases.sh"
 
 [ -s "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . $HOME/.nix-profile/etc/profile.d/nix.sh
 

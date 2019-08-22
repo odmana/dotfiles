@@ -47,7 +47,8 @@
 	fmar = !git fetch && git rebase origin/master
 	r = rebase
 	rim = rebase -i origin/master
-	sl = "!f () { count=${1:-3}; git s | awk '{print $2}'  | xargs -n 1 -t git l -n $count --; }; f $1"
+	sl = "!f () { count=${1:-3}; git s | awk '{print $2}'  | xargs -I % -n 1 git slOne % $count; }; f $1"
+	slOne = "!f () { fileName=${1}; count=${2:-3}; echo ===================== && echo $1 && echo ===================== && git l -n $count -- $fileName && echo --------------------- && echo; }; f $1 $2"
 	showv = !git showtool
 	dv = difftool --no-prompt
 	dsv = difftool --no-prompt --staged

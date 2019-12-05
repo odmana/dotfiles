@@ -127,10 +127,6 @@ export DOTFILES_DIR="$HOME/dotfiles"
 
 [ -s "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . $HOME/.nix-profile/etc/profile.d/nix.sh
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 [ -s "/Users/Ovindu/.local/bin" ] && export PATH=/Users/Ovindu/.local/bin:$PATH
 [ -s "$HOME/.ghcup/bin" ] && export PATH=$HOME/.ghcup/bin:$PATH
 [ -s "$HOME/.cabal/bin" ] && export PATH=$HOME/.cabal/bin:$PATH

@@ -56,6 +56,7 @@
 	tagupdate = "!f () { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1 && git push origin $1; }; f" 
 	publish = "!zsh -c 'source $HOME/.zshrc; gitpublish'"
 	unwind = "!zsh -c 'source $HOME/.zshrc; gitunwind'"
+	openpr = "!zsh -c 'source $HOME/.zshrc; openpr'"
 [color]
 	ui = true
 [color "diff-highlight"]

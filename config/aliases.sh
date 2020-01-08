@@ -104,3 +104,18 @@ nvmup() {
   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
   [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 }
+
+# openpr - Run git push and then immediately open the Pull Request URL
+# Open the Pull Request URL for your current directory's branch (base branch defaults to master)
+function openpr() {
+  git push origin HEAD
+
+  if [ $? -eq 0 ]; then
+    github_url=`git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/'`;
+    branch_name=`git symbolic-ref HEAD | cut -d"/" -f 3,4`;
+    pr_url=$github_url"/compare/master..."$branch_name
+    open $pr_url;
+  else
+    echo 'failed to push commits and open a pull request.';
+  fi
+}

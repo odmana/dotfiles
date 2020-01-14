@@ -49,6 +49,9 @@
 	rim = rebase -i origin/master
 	sl = "!f () { count=${1:-3}; git s | awk '{print $2}'  | xargs -I % -n 1 git slOne % $count; }; f $1"
 	slOne = "!f () { fileName=${1}; count=${2:-3}; echo ===================== && echo $1 && echo ===================== && git l -n $count -- $fileName && echo --------------------- && echo; }; f $1 $2"
+	slc = "!f () { git s | awk '{print $2}' | xargs -I % -n 1 git slCommitOne %; }; f"
+	slCommitOne = "!f () { fileName=${1}; git log -n 1 $fileName | head -n 1 | cut -d ' ' -f2 | xargs -I {} git slAddAndFixup $fileName {}; }; f $1"
+	slAddAndFixup = "!f () { fileName=${1}; sha=${2}; git a $fileName && git fixup $sha; }; f $1 $2"
 	showv = !git showtool
 	dv = difftool --no-prompt
 	dsv = difftool --no-prompt --staged

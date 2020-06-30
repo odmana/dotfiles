@@ -107,8 +107,8 @@ nvmup() {
 
 # openpr - Run git push and then immediately open the Pull Request URL
 # Open the Pull Request URL for your current directory's branch (base branch defaults to master)
-function openpr() {
-  git push origin HEAD
+openpr() {
+  gitpublish;
 
   if [ $? -eq 0 ]; then
     github_url=`git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/'`;

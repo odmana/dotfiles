@@ -57,6 +57,7 @@
 	dsv = difftool --no-prompt --staged
 	tagcommit = rev-list -n 1
 	tagupdate = "!f () { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1 && git push origin $1; }; f" 
+	tuc = "!f () { git tagupdate $(git log -1 --pretty=%B); }; f" 
 	publish = "!zsh -c 'source $HOME/.zshrc; gitpublish'"
 	unwind = "!zsh -c 'source $HOME/.zshrc; gitunwind'"
 	openpr = "!zsh -c 'source $HOME/.zshrc; openpr'"

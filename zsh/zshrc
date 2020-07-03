@@ -65,6 +65,8 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(
 	git
 	zsh-autosuggestions
+	zsh-completions
+	zsh-syntax-highlighting
 	z
 )
 
@@ -96,6 +98,9 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
+# Increase history size
+export HISTSIZE=1000000000
+export SAVEHIST=$HISTSIZE
 
 ##############################################################
 # Theme Stuff
@@ -120,13 +125,9 @@ POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%{%B%F{black}%K{yellow}%} $user_symbo
 ##############################################################
 # Custom Scripts
 ##############################################################
-source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-export DOTFILES_DIR="$HOME/dotfiles"
-[ -s "$DOTFILES_DIR/config/aliases.sh" ] && . "$DOTFILES_DIR/config/aliases.sh"
-
 [ -s "$HOME/.nix-profile/etc/profile.d/nix.sh" ] && . $HOME/.nix-profile/etc/profile.d/nix.sh
 
-[ -s "/Users/Ovindu/.local/bin" ] && export PATH=/Users/Ovindu/.local/bin:$PATH
-[ -s "$HOME/.ghcup/bin" ] && export PATH=$HOME/.ghcup/bin:$PATH
-[ -s "$HOME/.cabal/bin" ] && export PATH=$HOME/.cabal/bin:$PATH
+export DOTFILES_DIR="$HOME/dotfiles"
+export PATH=$HOME/bin:$DOTFILES_DIR/bin:$PATH
+[ -s "$DOTFILES_DIR/config/aliases.sh" ] && . "$DOTFILES_DIR/config/aliases.sh"
+[ -s "$DOTFILES_DIR/config/local.sh" ] && . "$DOTFILES_DIR/config/local.sh"

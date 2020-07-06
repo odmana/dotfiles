@@ -107,8 +107,8 @@ export SAVEHIST=$HISTSIZE
 # Source: https://medium.com/@Clovis_app/configuration-of-a-beautiful-efficient-terminal-and-prompt-on-osx-in-7-minutes-827c29391961
 ##############################################################
 
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir rbenv vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=()
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(nix_shell dir rbenv vcs)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(command_execution_time status)
 
 POWERLEVEL9K_PROMPT_ON_NEWLINE=true
 
@@ -121,6 +121,11 @@ if [[ $(print -P "%#") =~ "#" ]]; then
 fi
 POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%{%B%F{black}%K{yellow}%} $user_symbol%{%b%f%k%F{yellow}%} %{%f%}"
 
+# Tip: If you want to see just the icon without "pure" and "impure", uncomment the next line.
+typeset -g POWERLEVEL9K_NIX_SHELL_CONTENT_EXPANSION=
+
+# Custom icon.
+typeset -g POWERLEVEL9K_NIX_SHELL_VISUAL_IDENTIFIER_EXPANSION=''
 
 ##############################################################
 # Custom Scripts

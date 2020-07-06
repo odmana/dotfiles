@@ -16,6 +16,13 @@ ln -s ~/dotfiles/git/gitignore "$gitignore"
 ls -al "$gitignore"
 
 echo ""
+echo "Setting up p10k links"
+p10k=~/.p10k.zsh
+[ -e "$p10k" ] && rm "$p10k"
+ln -s ~/dotfiles/zsh/p10k.zsh "$p10k"
+ls -al "$p10k"
+
+echo ""
 echo "Setting up zsh links"
 zsh=~/.zshrc
 [ -e "$zsh" ] && rm "$zsh"
@@ -30,16 +37,16 @@ ln -s ~/dotfiles/tmux/tmux.conf "$tmux"
 ls -al "$tmux"
 
 echo ""
+echo "Setting up vim links"
+vim=~/.vimrc
+[ -e "$vim" ] && rm "$vim"
+ln -s ~/dotfiles/vim/vimrc "$vim"
+ls -al "$vim"
+
+echo ""
 echo "Setting up alacritty links"
 mkdir -p ~/.config/alacritty/
 alacritty=~/.config/alacritty/alacritty.yml
 [ -e "$alacritty" ] && rm "$alacritty"
 ln -s ~/dotfiles/alacritty/alacritty.yml "$alacritty"
 ls -al "$alacritty"
-
-echo ""
-echo "Setting up vim links"
-vim=~/.vimrc
-[ -e "$vim" ] && rm "$vim"
-ln -s ~/dotfiles/vim/vimrc "$vim"
-ls -al "$vim"

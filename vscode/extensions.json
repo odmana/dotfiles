@@ -1,0 +1,12 @@
+{
+    "extensions": [
+        "bradlc.vscode-tailwindcss",
+        "csstools.postcss",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "golf1052.code-sync",
+        "hashicorp.terraform",
+        "mhutchie.git-graph",
+        "ms-azuretools.vscode-docker"
+    ]
+}

@@ -77,6 +77,9 @@ plugins=(
 	z
 )
 
+# Skip the verification of insecure directories for completions
+ZSH_DISABLE_COMPFIX=true
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration

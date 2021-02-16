@@ -15,17 +15,21 @@ FZF-EOF"
 
 # Create a fixup commit from fzf search of your branch's commits
 fixup() {
-  local out sha
+  local default out sha
+
   git diff --cached --quiet --exit-code
   if [ $? -ne 1 ]; then
     echo "No files are staged for a fixup"
     return
   fi
+
+  default=`git default-branch`;
   out=$(
-    git log master.. --graph --color=always \
+    git log ${default}.. --graph --color=always \
         --format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
     fzf --ansi --no-sort --reverse --query="$q" --tiebreak=index \
         --preview "echo 'Currently staged...\n' && git diff --cached --color" --toggle-sort=\`)
+
   sha=$(sed 's/^[^a-z0-9]*//;/^$/d' <<< "$out" | awk '{print $1}')
   if [ ! -z "$sha" ]; then
     git commit --fixup "$sha"
@@ -38,14 +42,15 @@ fh() {
 }
 
 # gitpublish - Push a branch to origin and set upstream tracking.
-# Will abort if you're on master. You should be publishing a feature branch.
+# Will abort if you're on the default branch. You should be publishing a feature branch.
 # Warns you if there are uncommitted changes - but does not abort.
 gitpublish() {
-  local BRANCH
+  local DEFAULT BRANCH
 
+  DEFAULT=`git default-branch`;
   BRANCH=`git symbolic-ref --short -q HEAD`;
-  if [ "$BRANCH" = "master" ]; then
-      echo "You're on master. You shouldn't publish this.";
+  if [ "$BRANCH" = "$DEFAULT" ]; then
+      echo "You're on the default branch. You shouldn't publish this.";
       return 1;
   fi;
   if [[ -n $(git status -s) ]]; then
@@ -57,13 +62,13 @@ gitpublish() {
 }
 
 # gitunwind - Unwind a branch
-# Once a branch has been merged to master, run this to make the local repository clean again.
-# First checks that the current branch is not ahead of master. Will abort if it isn't.
+# Once a branch has been merged to the default branch, run this to make the local repository clean again.
+# First checks that the current branch is not ahead of the default branch. Will abort if it isn't.
 # Prunes remote branches (so, delete your upstream branches once they are merged and finalised.)
-# Switches to master, and deletes the local branch that you were on previously.
-# Fast-forwards master to origin/master.
+# Switches to the default branch, and deletes the local branch that you were on previously.
+# Fast-forwards the default branch to origin/{default}.
 gitunwind() {
-  local BRANCH HEADREV BASEREV
+  local DEFAULT BRANCH HEADREV BASEREV
 
   if [[ -n $(git status -s) ]]; then
       echo "You have uncommitted changes or a dirty working tree. Aborting.";
@@ -71,27 +76,28 @@ gitunwind() {
       return 1;
   fi;
 
+  DEFAULT=`git default-branch`;
   BRANCH=`git symbolic-ref --short -q HEAD`;
-  if [ "$BRANCH" != "master" ]; then
+  if [ "$BRANCH" != "$DEFAULT" ]; then
       echo "Pulling remote changes...";
       git fetch --prune origin;
       HEADREV=`git rev-parse HEAD`;
-      BASEREV=`git merge-base HEAD origin/master`;
+      BASEREV=`git merge-base HEAD origin/$DEFAULT`;
       if [ "$HEADREV" = "$BASEREV" ]; then
-          echo "Great; $BRANCH is on master. Unwinding...";
-          git checkout master;
-          git merge origin/master --ff-only;
+          echo "Great; $BRANCH is on $DEFAULT. Unwinding...";
+          git checkout $DEFAULT;
+          git merge origin/$DEFAULT --ff-only;
           git branch -d $BRANCH;
           echo ""
           echo "Unwind complete. Deleted: $BRANCH."
           echo "Here's what you missed:"
           echo ""
-          git log --oneline $HEADREV~1..master
+          git log --oneline $HEADREV~1..$DEFAULT
       else
-          echo "$BRANCH is ahead of master. Aborting."
+          echo "$BRANCH is ahead of $DEFAULT. Aborting."
       fi;
   else
-      echo "You're on master. Nothing to unwind!";
+      echo "You're on $DEFAULT. Nothing to unwind!";
       echo "Will update instead.";
       git pull --prune;
   fi;
@@ -106,14 +112,15 @@ nvmup() {
 }
 
 # openpr - Run git push and then immediately open the Pull Request URL
-# Open the Pull Request URL for your current directory's branch (base branch defaults to master)
+# Open the Pull Request URL for your current directory's branch
 openpr() {
   gitpublish;
 
   if [ $? -eq 0 ]; then
+    default=`git default-branch`;
     github_url=`git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#https://#' -e 's@com:@com/@' -e 's%\.git$%%' | awk '/github/'`;
     branch_name=`git symbolic-ref HEAD | cut -d"/" -f 3,4`;
-    pr_url=$github_url"/compare/master..."$branch_name
+    pr_url=$github_url"/compare/$default..."$branch_name
 
     if command -v open &> /dev/null
     then

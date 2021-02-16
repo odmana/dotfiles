@@ -39,14 +39,14 @@
 	l20 = !git l -n 20
 	l25 = !git l -n 25
 	ll = !git l -n 10
-	lb = !git l origin/master..
+	lb = "!f () { head=$(git default-branch); git l origin/$head..; }; f"
 	wip = commit -m 'WIP'
 	p = pull
 	ps = push
 	psfl = push --force-with-lease
-	fmar = !git fetch && git rebase origin/master
+	fmar = "!f () { head=$(git default-branch); git fetch && git rebase origin/$head; }; f"
 	r = rebase
-	rim = rebase -i origin/master
+	rim = "!f () { head=$(git default-branch); git rebase -i origin/$head; }; f"
 	sl = "!f () { count=${1:-3}; git s | awk '{print $2}'  | xargs -I % -n 1 git slOne % $count; }; f $1"
 	slOne = "!f () { fileName=${1}; count=${2:-3}; echo ===================== && echo $1 && echo ===================== && git l -n $count -- $fileName && echo --------------------- && echo; }; f $1 $2"
 	slc = "!f () { git s | awk '{print $2}' | xargs -I % -n 1 git slCommitOne %; }; f"
@@ -61,6 +61,7 @@
 	publish = "!zsh -c 'source $HOME/.zshrc; gitpublish'"
 	unwind = "!zsh -c 'source $HOME/.zshrc; gitunwind'"
 	openpr = "!zsh -c 'source $HOME/.zshrc; openpr'"
+	default-branch = !git symbolic-ref refs/remotes/origin/HEAD | cut -f4 -d/
 [color]
 	ui = true
 [color "diff-highlight"]
@@ -84,3 +85,5 @@
 	pruneTags = true
 [credential]
 	helper = store
+[init]
+	defaultBranch = main

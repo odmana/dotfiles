@@ -62,6 +62,12 @@ window:
   #   - SimpleFullscreen
   startup_mode: Maximized
 
+  # Background opacity
+  #
+  # Window opacity as a floating point number from `0.0` to `1.0`.
+  # The value `0.0` is completely transparent and `1.0` is opaque.
+  opacity: 0.95
+
   # Window title
   #title: Alacritty
 
@@ -135,7 +141,7 @@ font:
     #style: Bold Italic
 
   # Point size
-  #size: 11.0
+  size: 14.0
 
   # Offset is the extra space around each character. `offset.y` can be thought of
   # as modifying the line spacing, and `offset.x` as modifying the letter spacing.
@@ -272,12 +278,6 @@ colors:
 #  animation: EaseOutExpo
 #  duration: 0
 #  color: '#ffffff'
-
-# Background opacity
-#
-# Window opacity as a floating point number from `0.0` to `1.0`.
-# The value `0.0` is completely transparent and `1.0` is opaque.
-background_opacity: 0.95
 
 #selection:
   #semantic_escape_chars: ",│`|:\"' ()[]{}<>\t"

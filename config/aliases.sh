@@ -137,5 +137,5 @@ openpr() {
 }
 
 gitcheckoutfuzzy() {
-  git checkout "$(git branch --all | fzf | tr -d '[:space:]')"
+  git checkout "$(git branch --all | fzf | tr -d '[:space:]' | sed 's/remotes\/origin\///')"
 }

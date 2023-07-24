@@ -16,6 +16,7 @@
 	b = branch
 	co = checkout
 	cob = checkout -b
+	cof = "!zsh -c 'source $HOME/.zshrc; gitcheckoutfuzzy'"
 	cp = cherry-pick
 	d = diff
 	ds = diff --staged

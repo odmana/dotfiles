@@ -135,3 +135,7 @@ openpr() {
     echo 'failed to push commits and open a pull request.';
   fi
 }
+
+gitcheckoutfuzzy() {
+  git checkout "$(git branch --all | fzf | tr -d '[:space:]')"
+}

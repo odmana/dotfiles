@@ -125,8 +125,11 @@ openpr() {
     if command -v open &> /dev/null
     then
       open $pr_url;
-    else
+    elif command -v xdg-open &> /dev/null
+    then
       xdg-open $pr_url;
+    else 
+      start "" "$pr_url";
     fi
   else
     echo 'failed to push commits and open a pull request.';

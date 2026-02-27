@@ -1,0 +1,76 @@
+[colors.bright]
+black = "0x4C566A"
+blue = "0x81A1C1"
+cyan = "0x8FBCBB"
+green = "0xA3BE8C"
+magenta = "0xB48EAD"
+red = "0xBF616A"
+white = "0xECEFF4"
+yellow = "0xEBCB8B"
+
+[colors.cursor]
+cursor = "0xD8DEE9"
+text = "0x2E3440"
+
+[colors.normal]
+black = "0x3B4252"
+blue = "0x81A1C1"
+cyan = "0x88C0D0"
+green = "0xA3BE8C"
+magenta = "0xB48EAD"
+red = "0xBF616A"
+white = "0xE5E9F0"
+yellow = "0xEBCB8B"
+
+[colors.primary]
+background = "0x2E3440"
+foreground = "0xD8DEE9"
+
+[font]
+size = 14.0
+
+[font.bold]
+family = "MesloLGM Nerd Font"
+
+[font.italic]
+family = "MesloLGM Nerd Font"
+
+[font.normal]
+family = "MesloLGM Nerd Font"
+style = "Regular"
+
+[[keyboard.bindings]]
+key = "Left"
+mods = "Alt"
+chars = "\u001Bb"
+
+[[keyboard.bindings]]
+key = "Right"
+mods = "Alt"
+chars = "\u001Bf"
+
+[[keyboard.bindings]]
+key = "Left"
+mods = "Command"
+chars = "\u001bOH"
+
+[[keyboard.bindings]]
+key = "Right"
+mods = "Command"
+chars = "\u001bOF"
+
+# [[keyboard.bindings]]
+# chars = "\u0015"
+# key = "Back"
+# mods = "Command"
+# 
+# [[keyboard.bindings]]
+# chars = "\u001B\u007F"
+# key = "Back"
+# mods = "Alt"
+
+[window]
+opacity = 0.95
+startup_mode = "Maximized"
+
+[keyboard]

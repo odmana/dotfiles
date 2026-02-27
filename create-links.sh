@@ -46,7 +46,7 @@ ls -al "$vim"
 echo ""
 echo "Setting up alacritty links"
 mkdir -p ~/.config/alacritty/
-alacritty=~/.config/alacritty/alacritty.yml
+alacritty=~/.config/alacritty/alacritty.toml
 [ -e "$alacritty" ] && rm "$alacritty"
-ln -s ~/dotfiles/alacritty/alacritty.yml "$alacritty"
+ln -s ~/dotfiles/alacritty/alacritty.toml "$alacritty"
 ls -al "$alacritty"

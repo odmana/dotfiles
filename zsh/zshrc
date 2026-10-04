@@ -112,6 +112,17 @@ source $ZSH/oh-my-zsh.sh
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
 
+# Word / line movement for whatever Home/End/Alt-arrow encoding the
+# terminal or multiplexer (tmux, herdr) passes through
+bindkey '^[[H' beginning-of-line
+bindkey '^[OH' beginning-of-line
+bindkey '^[[1~' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[OF' end-of-line
+bindkey '^[[4~' end-of-line
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
+
 ##############################################################
 # Theme Stuff
 ##############################################################

@@ -30,13 +30,13 @@ foreground = "0xD8DEE9"
 size = 14.0
 
 [font.bold]
-family = "MesloLGM Nerd Font"
+family = "JetBrainsMono Nerd Font"
 
 [font.italic]
-family = "MesloLGM Nerd Font"
+family = "JetBrainsMono Nerd Font"
 
 [font.normal]
-family = "MesloLGM Nerd Font"
+family = "JetBrainsMono Nerd Font"
 style = "Regular"
 
 [[keyboard.bindings]]
@@ -70,7 +70,13 @@ chars = "\u001bOF"
 # mods = "Alt"
 
 [window]
-opacity = 0.95
+option_as_alt = "Both"
+opacity = 0.975
 startup_mode = "Maximized"
 
 [keyboard]
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"

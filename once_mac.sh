@@ -11,6 +11,7 @@ brew install herdr
 brew tap eugenioenko/ttt
 brew trust eugenioenko/ttt
 brew install ttt
+herdr plugin install eugenioenko/ttt/herdr-plugin
 curl -L https://git.io/tmux-up -o /usr/local/bin/tmux-up
 
 # Install "Tmux Plugin Manager" Hit `prefix + I` to setup plugins specified in `tmux.conf`

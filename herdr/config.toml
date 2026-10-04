@@ -13,3 +13,10 @@ prompt_new_tab_name = false
 
 [keys]
 prefix = "cmd+a"
+edit_scrollback = "prefix+shift+e"
+
+[[keys.command]]
+key = "prefix+e"
+type = "shell"
+command = "~/dotfiles/herdr/open-ttt.sh"
+description = "open TTT editor"

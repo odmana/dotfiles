@@ -7,6 +7,10 @@ brew install diff-so-fancy
 brew install bat
 brew install fzf
 brew install tmux
+brew install herdr
+brew tap eugenioenko/ttt
+brew trust eugenioenko/ttt
+brew install ttt
 curl -L https://git.io/tmux-up -o /usr/local/bin/tmux-up
 
 # Install "Tmux Plugin Manager" Hit `prefix + I` to setup plugins specified in `tmux.conf`
@@ -14,6 +18,7 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Install terminal
 brew install --cask alacritty
+brew install --cask font-jetbrains-mono-nerd-font
 
 # Install shell (zsh) and set as default
 brew install zsh

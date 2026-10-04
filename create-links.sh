@@ -50,3 +50,19 @@ alacritty=~/.config/alacritty/alacritty.toml
 [ -e "$alacritty" ] && rm "$alacritty"
 ln -s ~/dotfiles/alacritty/alacritty.toml "$alacritty"
 ls -al "$alacritty"
+
+echo ""
+echo "Setting up herdr links"
+mkdir -p ~/.config/herdr/
+herdr=~/.config/herdr/config.toml
+[ -e "$herdr" ] && rm "$herdr"
+ln -s ~/dotfiles/herdr/config.toml "$herdr"
+ls -al "$herdr"
+
+echo ""
+echo "Setting up ttt links"
+mkdir -p ~/.config/ttt/
+ttt=~/.config/ttt/settings.json
+[ -e "$ttt" ] && rm "$ttt"
+ln -s ~/dotfiles/ttt/settings.json "$ttt"
+ls -al "$ttt"

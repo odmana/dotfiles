@@ -1,5 +1,6 @@
 alias nx="nix-shell --command zsh"
 alias cls="clear"
+alias cc="claude --continue" # resume the most recent Claude Code session in this folder
 
 # fshow - git commit browser (enter for show, ctrl-d for diff, ` toggles sort)
 fshow() {

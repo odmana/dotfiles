@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# Worktrunk + herdr: open worktrees as herdr worktree workspaces.
+#   wth sw [wt switch options/branch]   pick or create a worktree and open it in herdr
+#   wth new [branch] [-b base]          create a branch and worktree and open it in herdr
+#                                       (no branch: prompts for one; base defaults to the default branch)
+#   wth rm [branch|path] [wt remove options]
+#                                       close its herdr workspace and remove the worktree
+#                                       (no branch: picker with the current worktree preselected)
+set -eo pipefail
+
+die() { echo "wth: $*" >&2; exit 1; }
+
+usage() {
+  sed -n '2,8s/^# \{0,1\}//p' "$0"
+  exit "${1:-0}"
+}
+
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) windows=1 ;;
+  *) windows= ;;
+esac
+
+# On Windows `wt` is Windows Terminal, so worktrunk is installed as git-wt.
+if command -v git-wt >/dev/null 2>&1; then WT=git-wt; else WT=wt; fi
+
+# herdr on Windows is a native binary and expects C:/... paths.
+native_path() {
+  if [ -n "$windows" ]; then cygpath -m "$1"; else printf '%s\n' "$1"; fi
+}
+
+# worktrunk and PowerShell can't run a shebang script on Windows, so invoke this bash explicitly.
+bash_exe() {
+  local b
+  b=$(native_path "$BASH")
+  if [ -n "$windows" ] && [ "${b%.exe}" = "$b" ]; then b="$b.exe"; fi
+  printf '%s\n' "$b"
+}
+
+main_checkout() {
+  git -C "$1" worktree list --porcelain | sed -n '1s/^worktree //p'
+}
+
+cmd_sw() {
+  local script
+  script=$(native_path "$0")
+  exec "$WT" switch --no-cd "$@" -x "$(bash_exe)" -- "$script" sw-open '{{ worktree_path }}' '{{ branch }}'
+}
+
+cmd_new() {
+  local branch
+  if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+    branch=$1
+    shift
+  else
+    read -rp "New branch: " branch
+  fi
+  [ -n "$branch" ] || die "branch name required"
+  cmd_sw --create "$branch" "$@"
+}
+
+cmd_sw_open() {
+  local path root out
+  path=$(native_path "$1")
+  root=$(main_checkout "$path")
+  # herdr only opens worktrees relative to the main checkout, not a linked one.
+  out=$(herdr worktree open --cwd "$root" --path "$path" --label "$2" --focus 2>&1) || die "$out"
+}
+
+cmd_rm_detached() {
+  local root=$1 path=$2 log=$3
+  shift 3
+  export PATH="$PATH:/usr/bin"
+  sleep 1
+  if ! "$WT" -C "$root" remove --foreground "$path" "$@" >"$log" 2>&1; then
+    herdr notification show "wth rm failed" --body "$(basename "$path"): see $log" --sound request >/dev/null
+  fi
+}
+
+# Closing our own workspace kills this pane's process tree (nohup doesn't escape it on Windows),
+# and the pane's shell locks the directory, so hand removal to a process started outside it.
+remove_detached_windows() {
+  local root=$1 path=$2 ws=$3
+  shift 3
+  local log args a
+  log="$(cygpath -m "${TEMP:-/tmp}")/wth-rm-$(basename "$path").log"
+  args="'\"$(cygpath -m "$0")\" rm-detached \"$root\" \"$path\" \"$log\""
+  for a in "$@"; do args="$args \"$a\""; done
+  args="$args'"
+  powershell.exe -NoProfile -Command "Start-Process -WindowStyle Hidden -WorkingDirectory '$root' -FilePath '$(bash_exe)' -ArgumentList $args"
+  herdr workspace close "$ws" >/dev/null
+}
+
+cmd_rm() {
+  local target=
+  if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+    target=$1
+    shift
+  fi
+
+  git rev-parse --git-dir >/dev/null 2>&1 || die "not in a git repository"
+
+  # "<path>\t<branch>" per worktree, main checkout first
+  local worktrees root linked line path
+  worktrees=$(git worktree list --porcelain | awk '
+    /^worktree / { p = substr($0, 10) }
+    /^branch /   { sub("refs/heads/", "", $2); print p "\t" $2 }
+    /^detached/  { print p "\t(detached)" }')
+  root=$(printf '%s\n' "$worktrees" | head -1 | cut -f1)
+  linked=$(printf '%s\n' "$worktrees" | tail -n +2)
+  [ -n "$linked" ] || die "no linked worktrees to remove"
+
+  if [ -n "$target" ]; then
+    local t
+    t=$(native_path "$target")
+    line=$(printf '%s\n' "$linked" | awk -F'\t' -v t="$t" -v b="$target" '$1 == t || $2 == b' | head -1)
+    [ -n "$line" ] || die "no worktree matching '$target'"
+  else
+    local current
+    current=$(native_path "$(git rev-parse --show-toplevel)")
+    line=$({
+      printf '%s\n' "$linked" | awk -F'\t' -v c="$current" '$1 == c'
+      printf '%s\n' "$linked" | awk -F'\t' -v c="$current" '$1 != c'
+    } | fzf --delimiter='\t' --with-nth=2 --prompt='remove> ' --height=40% --reverse) || exit 0
+  fi
+  path=${line%%$'\t'*}
+
+  case " $* " in
+    *" -f "*|*" --force "*) ;;
+    *) [ -z "$(git -C "$path" status --porcelain)" ] || die "$path has uncommitted changes (pass -f to force)" ;;
+  esac
+
+  local ws
+  ws=$(herdr worktree list --cwd "$root" | jq -r --arg p "$path" '.result.worktrees[] | select(.path == $p) | .open_workspace_id // empty')
+
+  if [ -z "$ws" ]; then
+    exec "$WT" -C "$root" remove --foreground "$path" "$@"
+  fi
+
+  if [ "$ws" != "${HERDR_WORKSPACE_ID-}" ]; then
+    herdr workspace close "$ws" >/dev/null
+    exec "$WT" -C "$root" remove --foreground "$path" "$@"
+  fi
+
+  if [ -n "$windows" ]; then
+    remove_detached_windows "$root" "$path" "$ws" "$@"
+  else
+    # Unix allows deleting a directory a shell is in, so remove first (output visible), then close.
+    cd "$root"
+    "$WT" remove --foreground "$path" "$@"
+    herdr workspace close "$ws" >/dev/null
+  fi
+}
+
+case "${1-}" in
+  sw) shift; cmd_sw "$@" ;;
+  new) shift; cmd_new "$@" ;;
+  rm) shift; cmd_rm "$@" ;;
+  sw-open) shift; cmd_sw_open "$@" ;;
+  rm-detached) shift; cmd_rm_detached "$@" ;;
+  -h|--help) usage ;;
+  *) usage 1 ;;
+esac

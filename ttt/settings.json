@@ -20,9 +20,15 @@
     "insertFinalNewline": true,
     "trimTrailingWhitespace": false,
     "focusOnOpen": false,
+    "syntaxHighlight": true,
+    "gitGutter": true,
+    "autoDedent": true,
+    "autoIndent": true,
     "gutterStyle": "compact",
     "borderStyle": "rounded",
     "bracketPairColorization": true,
+    "showTrailingNewline": true,
+    "menuBar": true,
     "transparentBackground": false
   },
   "search": {
@@ -55,5 +61,11 @@
   },
   "image": {
     "protocol": "auto"
+  },
+  "plugins": {
+    "enabled": true
+  },
+  "welcome": {
+    "showOnHome": true
   }
 }

@@ -1,0 +1,8 @@
+{
+  "zoom": 1.1,
+  "sounds": {
+    "enabled": true
+  },
+  "telemetry": false,
+  "minimum_contrast": 1.0
+}

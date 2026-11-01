@@ -66,3 +66,9 @@ ttt=~/.config/ttt/settings.json
 [ -e "$ttt" ] && rm "$ttt"
 ln -s ~/dotfiles/ttt/settings.json "$ttt"
 ls -al "$ttt"
+
+echo ""
+echo "Setting up herdr app config"
+# Copied, not linked: the app only hot-reloads files under ~/.config/herdr-app.
+# Run `herdr-app-sync` to copy changes made in the app back into dotfiles.
+~/dotfiles/bin/herdr-app-sync --install

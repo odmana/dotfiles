@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Sync Herdr app config between ~/.config/herdr-app and ~/dotfiles/herdr-app.
+#   herdr-app-sync              copy the app's files into dotfiles (run before committing)
+#   herdr-app-sync <mod>...     same, and start tracking these mods too
+#   herdr-app-sync --install    copy dotfiles into the app (a new machine; create-links.sh runs this)
+# Synced: settings.json, keys.json, layouts/main-custom.json and every mod under
+# ~/dotfiles/herdr-app/mods (--install also downloads the Material Icon Theme icons). Real copies, not symlinks: the app only notices edits to
+# files that live under ~/.config/herdr-app, so symlinked mods never hot-reload.
+set -euo pipefail
+
+app=${HERDR_APP_HOME:-$HOME/.config/herdr-app}
+dot=${DOTFILES_DIR:-$HOME/dotfiles}/herdr-app
+files=(settings.json keys.json layouts/main-custom.json)
+# Written by the app into every mod folder; not ours.
+# Material Icon Theme (github.com/material-extensions/vscode-material-icon-theme, MIT), installed by
+# --install, not kept here. To update: the version and its "dist.integrity" from
+# https://registry.npmjs.org/material-icon-theme/latest
+icons_version=5.40.0
+icons_integrity=sha512-IrvgusbwtqxhUtVgUy0nToJcfN7CYVRdbBxKMfbo0vab9flVBHA5INZ9UiE5SgRj+PM6opCl5nn5TZdpm2UaxA==
+rsync_mod=(rsync -a --delete --exclude jsconfig.json --exclude gpui-kit.d.ts --exclude .DS_Store)
+
+die() { echo "herdr-app-sync: $*" >&2; exit 1; }
+
+if [ "${1:-}" = "--install" ]; then
+  mkdir -p "$app/layouts" "$app/mods"
+  for f in "${files[@]}"; do
+    # Replace an old symlink with the file itself.
+    [ -L "$app/$f" ] && rm "$app/$f"
+    cp "$dot/$f" "$app/$f" && echo "installed $f"
+  done
+  for d in "$dot"/mods/*/; do
+    m=$(basename "$d")
+    [ -L "$app/mods/$m" ] && rm "$app/mods/$m"
+    "${rsync_mod[@]}" "$d" "$app/mods/$m/" && echo "installed mods/$m"
+  done
+  # File icons: Material Icon Theme's SVGs and manifest (~1,250 files) aren't kept in dotfiles. Its npm
+  # package is downloaded at the pinned version, checked against its checksum, and unpacked into
+  # data/material-icons, where files-custom, changes-custom and git-graph look for it.
+  icons="$app/data/material-icons"
+  if [ "$(cat "$icons/VERSION" 2>/dev/null)" != "$icons_version" ]; then
+    tmp=$(mktemp -d)
+    if curl -fsSL -o "$tmp/pkg.tgz" "https://registry.npmjs.org/material-icon-theme/-/material-icon-theme-$icons_version.tgz" \
+      && [ "sha512-$(openssl dgst -sha512 -binary "$tmp/pkg.tgz" | openssl base64 -A)" = "$icons_integrity" ] \
+      && tar xzf "$tmp/pkg.tgz" -C "$tmp" package/dist/material-icons.json package/icons package/LICENSE; then
+      mkdir -p "$icons" && rsync -a --delete "$tmp/package/icons/" "$icons/icons/"
+      cp "$tmp/package/dist/material-icons.json" "$tmp/package/LICENSE" "$icons/" && echo "$icons_version" > "$icons/VERSION"
+      echo "installed data/material-icons ($icons_version)"
+    else echo "skipped data/material-icons (couldn't download or verify material-icon-theme $icons_version)"; fi
+    rm -rf "$tmp"
+  fi
+  # Which layout is shown is app state, not a file.
+  command -v herdr-app >/dev/null && herdr-app do layout.switch --name main-custom >/dev/null 2>&1 || true
+  exit 0
+fi
+
+[ -d "$app" ] || die "no $app (start the Herdr app once first)"
+mkdir -p "$dot/layouts" "$dot/mods"
+for f in "${files[@]}"; do
+  [ -e "$app/$f" ] || die "missing $app/$f"
+  cp "$app/$f" "$dot/$f"
+done
+mods=()
+for d in "$dot"/mods/*/; do [ -d "$d" ] && mods+=("$(basename "$d")"); done
+for m in "$@"; do
+  [ -d "$app/mods/$m" ] || die "no mod $app/mods/$m"
+  mods+=("$m")
+done
+for m in $(printf '%s\n' "${mods[@]}" | sort -u); do
+  [ -d "$app/mods/$m" ] || { echo "skipped mods/$m (not in the app)"; continue; }
+  "${rsync_mod[@]}" "$app/mods/$m/" "$dot/mods/$m/"
+done
+echo "synced into $dot"
+git -C "$dot" status --short -- .

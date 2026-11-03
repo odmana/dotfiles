@@ -111,6 +111,8 @@ source $ZSH/oh-my-zsh.sh
 # Increase history size
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
+# Commands starting with a space (e.g. ones containing secrets) aren't saved to history
+setopt HIST_IGNORE_SPACE
 
 # Word / line movement for whatever Home/End/Alt-arrow encoding the
 # terminal or multiplexer (tmux, herdr) passes through

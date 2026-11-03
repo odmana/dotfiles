@@ -84,7 +84,5 @@
 [fetch]
 	prune = true
 	pruneTags = true
-[credential]
-	helper = store
 [init]
 	defaultBranch = main

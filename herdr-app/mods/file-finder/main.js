@@ -57,7 +57,7 @@ export default class FileFinder extends View {
     if (!root) { this.error = "No folder"; return; }
     cx.spawn(async (cx) => {
       try {
-        const git = await exec("git", ["-c", "core.quotepath=off", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, on });
+        const git = await exec("git", ["--no-optional-locks", "-c", "core.fsmonitor=false", "-c", "core.quotepath=off", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, on });
         let list;
         if (git.code === 0) list = [...new Set(git.stdout.split("\0").filter(Boolean))];
         else {

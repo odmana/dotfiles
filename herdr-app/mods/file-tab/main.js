@@ -3,10 +3,11 @@
 // It opens as a read-only view drawn like the diff tab (same highlighter, colours, font and row
 // spacing). Edit (or cmd-e) switches to an editor; cmd-s saves and returns to the view, Done returns
 // without saving (unsaved edits stay in the editor and show in the view). Files on another machine,
-// and files over 400 KB, are view-only.
+// and files over 400 KB, are view-only. Changes made on disk by something else are picked up
+// unless they would overwrite unsaved edits.
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex, Scrollbar, v_virtual_list, Editor, EditorState, TextView } from "gpui-base";
-import { props, readTextFile, writeTextFile, theme, settings, shared, setShared } from "herdr";
+import { props, readTextFile, writeTextFile, theme, settings, shared, setShared, watchFolder } from "herdr";
 import { tokenize, languageOf } from "./highlight.js";
 import { palette } from "./palette.js";
 
@@ -44,6 +45,51 @@ export default class FileTab extends View {
     this.handle = cx.focus_handle();
     this.rows = []; this.size = codeSize(); this.row = rowOf(this.size);
     this.load(cx);
+    this.follow(cx);
+  }
+
+  // ---- following changes made by something else ----
+
+  // Local files: wake on changes in the file's folder (watchFolder is recursive, so match the
+  // path; a batch holding the folder itself means "anything may have changed"). Poll every 5
+  // seconds instead for files on another machine, for shallow folders (watching ~ or /etc
+  // recursively would mean every change under them), or if the watch is refused.
+  follow(cx) {
+    const { file, on } = props() ?? {};
+    if (!file) return;
+    const dir = file.replace(/\/[^/]*$/, "") || "/";
+    // FSEvents can report the resolved path (/private/tmp/... for /tmp/...), so compare by suffix.
+    const hit = (p) => p === file || p.endsWith(file) || p === dir || p.endsWith(dir);
+    const poll = () => cx.timer.every(5000, (cx) => this.reload(cx));
+    if (on || dir.split("/").filter(Boolean).length < 3) { poll(); return; }
+    cx.spawn(async (cx) => {
+      try {
+        while (!this.closed) {
+          const paths = await watchFolder(dir);
+          if (!this.closed && paths.some(hit)) this.reload(cx);
+        }
+      } catch { if (!this.closed) poll(); }
+    });
+  }
+
+  // Re-read the file; show it unless that would throw away unsaved edits.
+  reload(cx) {
+    if (this.closed || this.saving || this.text === undefined) return;
+    const { file, on } = props();
+    cx.spawn(async (cx) => {
+      let text;
+      try { text = await readTextFile(file, { on: on ?? null }); } catch { return; }
+      if (this.closed || this.saving) return;
+      if (text === null) { this.note = "This file was deleted or moved"; cx.notify(); return; }
+      if (text === this.saved || text.includes("\0")) return;
+      if (this.dirty) { this.note = "The file changed on disk; saving will be refused until you reopen it"; cx.notify(); return; }
+      if (this.editing) { this.stale = true; return; }  // reloaded when Done is clicked
+      this.saved = text; this.stale = false; this.note = null;
+      this.readonly = Boolean(on) || text.length > LIMIT;
+      this.code?.release(); this.code = null;  // the next Edit starts from the new text
+      this.show(text.length > LIMIT ? text.slice(0, LIMIT) + "\n… (file truncated, view-only)" : text);
+      cx.notify();
+    });
   }
 
   load(cx) {
@@ -107,6 +153,7 @@ export default class FileTab extends View {
     this.show(this.code.value());
     this.handle.focus();
     cx.notify();
+    if (this.stale && !this.dirty) this.reload(cx);
   }
 
   save(cx) {
@@ -125,7 +172,7 @@ export default class FileTab extends View {
     cx.notify();
   }
 
-  async close() { markUnsaved(false); this.code?.release(); }
+  async close() { this.closed = true; markUnsaved(false); this.code?.release(); }
 
   // ---- drawing ----
 

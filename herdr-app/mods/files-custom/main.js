@@ -1,8 +1,10 @@
 // A lazy file browser for the focused pane's folder, with bounded read-only previews.
+// Ours: the header's Collapse all and Find active file buttons; the active file (the focused file or
+// diff tab's) is highlighted. The tree is a virtual list so Find active file can scroll to it.
 import { View, div, svg } from "gpui-kit";
-import { v_flex, h_flex, Editor, EditorState } from "gpui-base";
+import { v_flex, h_flex, Editor, EditorState, Scrollbar, v_virtual_list, VirtualListScrollHandle } from "gpui-base";
 import { loadIcons, fileIcon } from "./fileicons.js";
-import { spaces, panes, focused, exec, readTextFile, watchFolder, theme, settings, window, run, shared, setShared, openOverlay } from "herdr";
+import { spaces, panes, focused, exec, readTextFile, watchFolder, theme, settings, window, run, shared, setShared } from "herdr";
 
 // Which folder the panel shows. A focused file or diff tab has no folder of its own: use the one it
 // was opened from (recorded in shared "tab-views"), else what this space showed last. Remembered per
@@ -75,6 +77,7 @@ export default class Files extends View {
     loadIcons(cx);
     this.saved = new Map();
     this.entries = new Map(); this.folders = new Set(); this.pending = new Set(); this.marks = {};
+    this.scroll = VirtualListScrollHandle.new();
     this.refresh(cx);
     cx.timer.every(10000, cx => this.refresh(cx));
   }
@@ -180,38 +183,99 @@ export default class Files extends View {
     });
   }
 
-  rows(prefix, depth, out, t) {
+  collapseAll(cx) {
+    for (const folder of this.folders) this.entries.delete(folder);
+    this.folders.clear();
+    this.scroll.scroll_to_item(0);
+    cx.notify();
+  }
+
+  // The focused tab's file, relative to the folder shown: a file tab's file, or the file a diff tab
+  // compares (its view, recorded in shared "tab-views": "file:<machine>:<path>" or
+  // "diff:<machine>:<path>[@commit]"). Null when it's elsewhere or the tab isn't one of those.
+  activeFile() {
+    const f = focused(), rec = f?.tab ? (shared("tab-views") ?? {})[f.tab] : null, view = rec?.view ?? rec;
+    const m = typeof view === "string" ? view.match(/^(file|diff):([^:]*):(.*)$/) : null;
+    if (!m || !this.root || (m[2] || null) !== (this.on ?? null)) return null;
+    const file = m[1] === "diff" ? m[3].replace(/@[0-9a-f]{7,40}$/, "") : m[3];
+    return file.startsWith(`${this.root}/`) ? file.slice(this.root.length + 1) : null;
+  }
+
+  // Open the folders down to the active file, then scroll to it (render does, once its row exists).
+  reveal(cx) {
+    const path = this.activeFile();
+    if (!path) return;
+    if (this.file) this.show(null);
+    const context = this.context, parts = path.split("/");
+    cx.spawn(async cx => {
+      for (let i = 1; i < parts.length; i++) {
+        const dir = parts.slice(0, i).join("/");
+        this.folders.add(dir);
+        if (!this.entries.has(dir)) {
+          try { await this.loadFolder(dir, context); } catch (e) { if (this.current(context)) this.error = String(e); }
+        }
+        if (!this.current(context)) return;
+      }
+      this.revealing = path;
+      cx.notify();
+    });
+  }
+
+  // The tree's visible rows, in order: { path, entry, depth, open, mark }.
+  rows(prefix, depth, out) {
     if (out.length >= TOTAL || depth > 40) return out;
     for (const entry of this.entries.get(prefix) ?? []) {
       if (out.length >= TOTAL) break;
-      const path = prefix ? `${prefix}/${entry.name}` : entry.name, open = this.folders.has(path), mark = this.marks[`${this.root}/${path}`];
-      out.push(h_flex().id(`file-${path}`).h(28).flex_none().pl(8 + depth * 18).pr(8).gap(7).items_center().rounded(7).cursor_pointer().hover(s => s.bg(t.hover))
-        .on_click((_e, cx) => entry.dir ? this.toggle(path, cx) : openTab(cx, "file-tab", entry.name, `file:${this.on ?? ""}:${this.root}/${path}`, { file: `${this.root}/${path}`, on: this.on ?? null }, { cwd: this.root, on: this.on ?? null }))
-        .child(entry.dir ? svg(`mods/files-custom/chevron-${open ? "down" : "right"}.svg`).size(12).flex_none().text_color(t.dim) : div().w(12).flex_none())
-        .child(fileIcon(path, entry.dir, open, 14, `mods/files-custom/${entry.dir ? "folder" : "file"}.svg`, t.muted))
-        .child(div().flex_1().min_w(0).truncate().child(entry.name))
-        .when(Boolean(mark), el => el.child(div().text_size(11).text_color(mark === "A" ? t.ansi2 : mark === "D" || mark === "U" ? t.ansi1 : t.blocked).child(mark))));
-      if (entry.dir && open) this.rows(path, depth + 1, out, t);
+      const path = prefix ? `${prefix}/${entry.name}` : entry.name, open = this.folders.has(path);
+      out.push({ path, entry, depth, open, mark: this.marks[`${this.root}/${path}`] });
+      if (entry.dir && open) this.rows(path, depth + 1, out);
     }
     return out;
   }
 
+  // A row's click (the list's on_item_click: handlers can't be set inside its renderer).
+  click({ path, entry }, cx) {
+    if (entry.dir) this.toggle(path, cx);
+    else openTab(cx, "file-tab", entry.name, `file:${this.on ?? ""}:${this.root}/${path}`, { file: `${this.root}/${path}`, on: this.on ?? null }, { cwd: this.root, on: this.on ?? null });
+  }
+
+  row({ path, entry, depth, open, mark }, active, t) {
+    return h_flex().id(`file-${path}`).h(28).w_full().flex_none().pl(8 + depth * 18).pr(8).gap(7).items_center().rounded(7).cursor_pointer()
+      .when(path === active, el => el.bg(t.selected)).hover(s => s.bg(t.hover))
+      .child(entry.dir ? svg(`mods/files-custom/chevron-${open ? "down" : "right"}.svg`).size(12).flex_none().text_color(t.dim) : div().w(12).flex_none())
+      .child(fileIcon(path, entry.dir, open, 14, `mods/files-custom/${entry.dir ? "folder" : "file"}.svg`, t.muted))
+      .child(div().flex_1().min_w(0).truncate().child(entry.name))
+      .when(Boolean(mark), el => el.child(div().text_size(11).text_color(mark === "A" ? t.ansi2 : mark === "D" || mark === "U" ? t.ansi1 : t.blocked).child(mark)));
+  }
+
   render(cx) {
     if (key() !== this.context?.key) this.refresh(cx);
-    const t = theme();
+    const t = theme(), rows = this.file ? [] : this.rows("", 0, []), active = this.activeFile();
+    if (this.revealing) {
+      const at = rows.findIndex(r => r.path === this.revealing);
+      if (at >= 0) this.scroll.scroll_to_item(at, "center");
+      this.revealing = null;
+    }
+    const iconButton = (id, icon, tip, action, enabled = true) => div().id(id).flex_none().p(4).rounded(5)
+      .text_color(enabled ? t.muted : t.dim).tooltip(tip)
+      .when(enabled, el => el.cursor_pointer().hover(s => s.bg(t.hover).text_color(t.foreground)).on_click(action))
+      .child(svg(`mods/files-custom/${icon}.svg`).size(14));
     return v_flex().id("files").size_full().min_h(0).rounded(10).overflow_hidden().bg(t.background).border_1().border_color(t.border).text_color(t.foreground).text_size(13)
       .child(h_flex().h(42).flex_none().px(14).gap(8).items_center().border_b(1).border_color(t.border)
         .when(Boolean(this.file), el => el.child(div().id("files-back").w(20).cursor_pointer().text_color(t.muted).on_click((_e, cx) => { this.show(null); cx.notify(); }).child("←")))
         .child(div().font_semibold().child("Files"))
         .child(div().flex_1().min_w(0).truncate().text_right().text_size(12).text_color(t.dim).child(this.file ?? this.root?.split(/[\\/]/).pop() ?? ""))
-        // Ours: a fuzzy finder over this folder's files (mods/file-finder).
-        .when(Boolean(this.root), el => el.child(div().id("files-find").flex_none().p(4).rounded(5).cursor_pointer().text_color(t.muted)
-          .hover(s => s.bg(t.hover).text_color(t.foreground)).tooltip("Find file")
-          .on_click(() => openOverlay({ mod: "file-finder", kind: "dialog", width: 640, height: 480, props: { root: this.root, on: this.on ?? null } }))
-          .child(svg("mods/files-custom/search.svg").size(14)))))
-      .when(!this.file, el => el.child(v_flex().id("files-tree").flex_1().min_h(0).overflow_y_scrollbar().p(6).children(this.rows("", 0, [], t))
-        .when(Boolean(this.error) || !this.entries.get("")?.length, el => el.child(div().p(8).text_size(12).text_color(t.dim).child(this.error || (this.loading ? "Loading files…" : this.root ? "No files" : "No folder"))))
-        .when(this.limited, el => el.child(div().p(8).text_size(11).text_color(t.dim).child("File list limited to 500 entries per folder and 5,000 total")))))
+        .when(Boolean(this.root) && !this.file, el => el
+          .child(iconButton("files-reveal", "locate", active ? "Find active file" : "Find active file (no file tab focused in this folder)", (_e, cx) => this.reveal(cx), Boolean(active)))
+          .child(iconButton("files-collapse", "collapse", "Collapse all", (_e, cx) => this.collapseAll(cx), this.folders.size > 0))))
+      .when(!this.file, el => el
+        .when(rows.length > 0, el => el.child(div().flex_1().min_h(0).relative().p(6)
+          .child(v_virtual_list("files-tree", rows.length, 28, (i) => rows[i].path, (range) => rows.slice(range.start, range.end).map(r => this.row(r, active, t)))
+            .track_scroll(this.scroll).size_full()
+            .on_item_click((key, cx) => { const r = rows.find(r => r.path === key); if (r) this.click(r, cx); }))
+          .child(Scrollbar.vertical("files-tree").absolute().inset_0())))
+        .when(Boolean(this.error) || !rows.length, el => el.child(div().p(8).text_size(12).text_color(t.dim).child(this.error || (this.loading ? "Loading files…" : this.root ? "No files" : "No folder"))))
+        .when(this.limited, el => el.child(div().p(8).text_size(11).text_color(t.dim).child("File list limited to 500 entries per folder and 5,000 total"))))
       .when(Boolean(this.file), el => el.child(this.code ? Editor.new(this.code).flex_1().min_h(0) : div().p(12).text_color(t.dim).child(this.fileError || "Loading file…")));
   }
 }

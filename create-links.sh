@@ -30,13 +30,6 @@ ln -s ~/dotfiles/zsh/zshrc "$zsh"
 ls -al "$zsh"
 
 echo ""
-echo "Setting up tmux links"
-tmux=~/.tmux.conf
-[ -e "$tmux" ] && rm "$tmux"
-ln -s ~/dotfiles/tmux/tmux.conf "$tmux"
-ls -al "$tmux"
-
-echo ""
 echo "Setting up vim links"
 vim=~/.vimrc
 [ -e "$vim" ] && rm "$vim"
@@ -58,14 +51,6 @@ herdr=~/.config/herdr/config.toml
 [ -e "$herdr" ] && rm "$herdr"
 ln -s ~/dotfiles/herdr/config.toml "$herdr"
 ls -al "$herdr"
-
-echo ""
-echo "Setting up ttt links"
-mkdir -p ~/.config/ttt/
-ttt=~/.config/ttt/settings.json
-[ -e "$ttt" ] && rm "$ttt"
-ln -s ~/dotfiles/ttt/settings.json "$ttt"
-ls -al "$ttt"
 
 echo ""
 echo "Setting up herdr app config"

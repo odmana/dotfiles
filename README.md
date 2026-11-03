@@ -16,7 +16,7 @@ pacman -S man vim wget curl \
 		zip unzip gzip \
 		pactoys \
 		mingw64/mingw-w64-x86_64-jq \
-		zsh tmux 
+		zsh
 ```
 
 Install apps:
@@ -30,15 +30,3 @@ winget install Schniz.fnm
 Fix git after following SSH steps:
 
 https://stackoverflow.com/questions/370030/why-git-cant-remember-my-passphrase-under-windows/58784438#58784438
-
-Run these when shell loads to fix tmux
-
-```
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-
-tmux () {
-    TMUX="command tmux ${@}"
-    MSYS2_PATH_TYPE=inherit SHELL=/usr/bin/zsh script -qO /dev/null -c "eval $TMUX";
-}
-```

@@ -115,7 +115,7 @@ export SAVEHIST=$HISTSIZE
 setopt HIST_IGNORE_SPACE
 
 # Word / line movement for whatever Home/End/Alt-arrow encoding the
-# terminal or multiplexer (tmux, herdr) passes through
+# terminal or multiplexer (herdr) passes through
 bindkey '^[[H' beginning-of-line
 bindkey '^[OH' beginning-of-line
 bindkey '^[[1~' beginning-of-line

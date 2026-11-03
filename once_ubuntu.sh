@@ -6,10 +6,6 @@ apt install git
 apt install vim
 apt install bat
 apt install fzf
-apt install tmux
-
-# Install tmux plugin manager (Hit `prefix + I` to setup plugins specified in `tmux.conf`)
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Install terminal
 add-apt-repository ppa:mmstick76/alacritty

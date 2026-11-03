@@ -1,0 +1,84 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+# Mirrors the old Powerlevel10k "rainbow" setup: two lines in a frame, powerline segments
+# with coloured backgrounds. Left: nix shell, directory, git. Right: exit status, background
+# jobs, command duration. Needs a Nerd Font.
+#
+#   ╭─ nix  dir  git                       ✔  jobs  3s ─╮
+#   ╰─                                                     ─╯
+#
+# Segment edges are drawn by the modules themselves so colours join up whether or not the
+# optional segments (nix, git) are present.
+
+format = """
+[╭─](fg:242)\
+$nix_shell\
+$directory\
+(${git_branch}${git_status}[ ](bg:green)[\ue0b0](fg:green))\
+$fill\
+$character\
+$status\
+$jobs\
+$cmd_duration\
+[─╮](fg:242)
+[╰─](fg:242) """
+right_format = "[─╯](fg:242)"
+
+# Blank line between prompts (but not above the first) is done in zshrc
+add_newline = false
+
+[fill]
+symbol = " "
+
+[nix_shell]
+format = "[  ](fg:black bg:blue)"
+
+[directory]
+# Outside a repo the segment closes itself; inside one it leads into the green git segment
+style = "fg:black bg:blue"
+format = "[  $path ]($style)[$read_only]($read_only_style)[](fg:blue)"
+repo_root_style = "fg:black bg:blue"
+before_repo_root_style = "fg:black bg:blue"
+repo_root_format = "[  $before_root_path$repo_root$path ]($style)[$read_only]($read_only_style)[](fg:blue bg:green)"
+read_only = " "
+read_only_style = "fg:black bg:blue"
+truncation_length = 8
+truncate_to_repo = false
+
+[git_branch]
+format = "[  $branch]($style)"
+style = "fg:black bg:green"
+
+[git_status]
+format = "([$ahead_behind$stashed$conflicted$staged$modified$deleted$renamed$untracked]($style))"
+style = "fg:black bg:green"
+ahead = " ⇡${count}"
+behind = " ⇣${count}"
+diverged = " ⇣${behind_count} ⇡${ahead_count}"
+stashed = " *${count}"
+conflicted = " ~${count}"
+staged = " +${count}"
+modified = " !${count}"
+deleted = " -${count}"
+renamed = " »${count}"
+untracked = " ?${count}"
+
+# ✔ / ✘ (the character module is the only one whose symbols can carry their own colours)
+[character]
+success_symbol = "[](fg:black)[ ✔ ](fg:green bg:black)"
+error_symbol = "[](fg:black)[ ✘](fg:red bg:black)"
+vimcmd_symbol = "[](fg:black)[ ✔ ](fg:green bg:black)"
+
+# Exit code after the ✘ (shown only on failure)
+[status]
+disabled = false
+format = "[ $status ](fg:red bg:black)"
+
+[jobs]
+format = "[  ](fg:cyan bg:black)"
+symbol_threshold = 1
+number_threshold = 100
+
+[cmd_duration]
+min_time = 3_000
+format = "[](fg:yellow bg:black)[ $duration  ](fg:black bg:yellow)"

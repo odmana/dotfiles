@@ -104,14 +104,6 @@ gitunwind() {
   fi;
 }
 
-# nvmup - Register nvm scripts and autocompletes.
-# These scripts are slow to run at startup. Hence they were moved to a function that can be run on demand.
-nvmup() {
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-  [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-}
-
 # openpr - Run git push and then immediately open the Pull Request URL
 # Open the Pull Request URL for your current directory's branch
 openpr() {

@@ -16,11 +16,12 @@ ln -s ~/dotfiles/git/gitignore "$gitignore"
 ls -al "$gitignore"
 
 echo ""
-echo "Setting up p10k links"
-p10k=~/.p10k.zsh
-[ -e "$p10k" ] && rm "$p10k"
-ln -s ~/dotfiles/zsh/p10k.zsh "$p10k"
-ls -al "$p10k"
+echo "Setting up starship links"
+mkdir -p ~/.config/
+starship=~/.config/starship.toml
+[ -e "$starship" ] && rm "$starship"
+ln -s ~/dotfiles/starship/starship.toml "$starship"
+ls -al "$starship"
 
 echo ""
 echo "Setting up zsh links"

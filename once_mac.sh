@@ -2,7 +2,6 @@
 # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Install tools
-brew install cask
 brew install diff-so-fancy
 brew install bat
 brew install fzf
@@ -10,16 +9,16 @@ brew install herdr
 
 # Install terminal
 brew install --cask alacritty
+brew install --cask herdr-app
 brew install --cask font-jetbrains-mono-nerd-font
 
-# Install shell (zsh) and set as default
-brew install zsh
-sudo chsh -s /bin/zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-git clone https://github.com/romkatv/powerlevel10k.git  ~/.oh-my-zsh/custom/themes/powerlevel10k
-git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh/custom/plugins/zsh-completions
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+# Install zsh if missing, and make it the default shell if it isn't already
+command -v zsh >/dev/null || brew install zsh
+case "$(dscl . -read "/Users/$USER" UserShell | awk '{print $2}')" in
+  */zsh) ;;
+  *) chsh -s /bin/zsh ;;  # macOS's own zsh: always present and listed in /etc/shells
+esac
+brew install starship zoxide zsh-autosuggestions zsh-syntax-highlighting zsh-completions
 
 # Symlink dotfiles
 ./create-links.sh
